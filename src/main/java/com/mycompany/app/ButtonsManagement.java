@@ -9,27 +9,25 @@ public class ButtonsManagement {
     ArrayList<MyButton> buses = new ArrayList<>();
     ArrayList<MyButton> trams = new ArrayList<>();
 
-    List<String> deleteRequest(List<String> busNumbers, String numberToDelete) {
+    void deleteRequest(List<String> busNumbers, String numberToDelete) {
         for (String eachNumber : busNumbers) {
             if (Objects.equals(numberToDelete, eachNumber)) {
                 busNumbers.remove(eachNumber);
-                return busNumbers;
+                return;
             }
         }
-        return busNumbers;
     }
 
-    List<String> addRequest(List<String> busNumbers, String numberToAdd) {
+    void addRequest(List<String> busNumbers, String numberToAdd) {
         for (String eachNumber : busNumbers) {
             if (Objects.equals(numberToAdd, eachNumber)) {
-                return busNumbers;
+                return;
             }
         }
         busNumbers.add(numberToAdd);
-        return busNumbers;
     }
 
-    void fillBuses() {
+    void fillBusesButtons() {
         buses.add(new MyButton("a"));
         buses.add(new MyButton("c"));
         buses.add(new MyButton("d"));
@@ -65,7 +63,7 @@ public class ButtonsManagement {
         buses.add(new MyButton("731"));
     }
 
-    void fillTrams() {
+    void fillTramsButtons() {
         for (int i = 1; i < 12; i++) {
             trams.add(new MyButton(String.valueOf(i)));
         }

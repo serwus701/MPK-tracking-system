@@ -1,7 +1,5 @@
 package com.mycompany.app;
 
-import com.esri.arcgisruntime.internal.util.DelayService;
-
 import java.util.ArrayList;
 
 public class GetBusDoublePosition {
@@ -13,7 +11,7 @@ public class GetBusDoublePosition {
     void setPos(String input, String busNr, char xOrY) {
 
         String[] myBusList = splitMyInput(input);
-        String strTempBusNr = "";
+        String strTempBusNr;
 
         for (String singleInput : myBusList) {
             strTempBusNr = "";
@@ -25,16 +23,16 @@ public class GetBusDoublePosition {
             }
 
             if (busNr.equals(strTempBusNr)) {
-                String strPos = "";
+                StringBuilder strPos = new StringBuilder();
 
                 for (int i = 0; i < singleInput.length(); i++) {
                     if (singleInput.charAt(i) == xOrY) {
                         int j = i + 3;
                         while (!(singleInput.charAt(j) == ',')) {
-                            strPos += singleInput.charAt(j);
+                            strPos.append(singleInput.charAt(j));
                             j++;
                         }
-                        double Pos = Double.parseDouble(strPos);
+                        double Pos = Double.parseDouble(strPos.toString());
                         if (xOrY == 'x') {
                             busName.add(busNr);
                             busXPositions.add(Pos);
@@ -55,9 +53,7 @@ public class GetBusDoublePosition {
         input = input.replace("},", "!");
         input = input.replace("\"y\"", "\"q\"");
 
-        String[] myBusList = input.split("!");
-
-        return myBusList;
+        return input.split("!");
 
     }
 
@@ -69,7 +65,7 @@ public class GetBusDoublePosition {
         return busYPositions;
     }
 
-    ArrayList<String> getBusnames() {
+    ArrayList<String> getBusNames() {
         return busName;
     }
 

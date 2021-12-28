@@ -17,7 +17,7 @@ public class MyButton {
         myButton.setStyle("-fx-background-color: White");
     }
 
-    void press(boolean isBus, LinkedList<String> vehicleToShowList) {
+    void press(LinkedList<String> vehicleToShowList) {
         ButtonsManagement myButtons = new ButtonsManagement();
 
         if (isOn) {
@@ -33,13 +33,5 @@ public class MyButton {
 
     Button getMyButton() {
         return myButton;
-    }
-
-    public boolean getIsOn() {
-        return isOn;
-    }
-
-    String getName() {
-        return name;
     }
 }

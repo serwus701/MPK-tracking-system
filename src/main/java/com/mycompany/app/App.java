@@ -4,15 +4,8 @@ import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
 import com.esri.arcgisruntime.geometry.*;
 import com.esri.arcgisruntime.mapping.BasemapStyle;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
-import com.esri.arcgisruntime.mapping.view.Graphic;
-import com.esri.arcgisruntime.mapping.view.GraphicsOverlay;
 import com.esri.arcgisruntime.mapping.view.MapView;
-import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
-import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
-import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
-import com.esri.arcgisruntime.symbology.TextSymbol;
 import javafx.application.Application;
-import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
@@ -25,20 +18,15 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-
-
 import com.esri.arcgisruntime.mapping.Viewpoint;
-import javafx.stage.WindowEvent;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.Objects;
 
 public class App extends Application {
 
-    MyRunnable userThread = new MyRunnable();
-    static MapView mapView;
+    PaintingThread userThread = new PaintingThread(this);
+    MapView mapView;
     StackPane stackPane = new StackPane();
     ArrayList<MyButton> buses = new ArrayList<>();
     ArrayList<MyButton> trams = new ArrayList<>();
@@ -98,8 +86,8 @@ public class App extends Application {
 
 
         ButtonsManagement myButtons = new ButtonsManagement();
-        myButtons.fillBuses();
-        myButtons.fillTrams();
+        myButtons.fillBusesButtons();
+        myButtons.fillTramsButtons();
 
         buses = myButtons.getBuses();
         trams = myButtons.getTrams();
@@ -116,24 +104,18 @@ public class App extends Application {
 
         for (MyButton myButton : buses
         ) {
-            myButton.getMyButton().setOnAction(new EventHandler<ActionEvent>() {
-                @Override
-                public void handle(ActionEvent event) {
-                    myButton.press(myButton.getIsOn(), vehicleToShowList);
-                    userThread.refresh();
-                }
+            myButton.getMyButton().setOnAction(event -> {
+                myButton.press(vehicleToShowList);
+                userThread.refresh();
             });
         }
 
         for (MyButton myButton : trams
         ) {
             tramVbox.getChildren().add(myButton.getMyButton());
-            myButton.getMyButton().setOnAction(new EventHandler<ActionEvent>() {
-                @Override
-                public void handle(ActionEvent event) {
-                    myButton.press(myButton.getIsOn(), vehicleToShowList);
-                    userThread.refresh();
-                }
+            myButton.getMyButton().setOnAction(event -> {
+                myButton.press(vehicleToShowList);
+                userThread.refresh();
             });
         }
     }
@@ -155,26 +137,17 @@ public class App extends Application {
         set10.setMinWidth(40);
         set15.setMinWidth(40);
 
-        set5.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                sleepTime = 5000;
-                userThread.refresh();
-            }
+        set5.setOnAction(event -> {
+            sleepTime = 5000;
+            userThread.refresh();
         });
-        set10.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                sleepTime = 10000;
-                userThread.refresh();
-            }
+        set10.setOnAction(event -> {
+            sleepTime = 10000;
+            userThread.refresh();
         });
-        set15.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                sleepTime = 15000;
-                userThread.refresh();
-            }
+        set15.setOnAction(event -> {
+            sleepTime = 15000;
+            userThread.refresh();
         });
         intervalBox.getChildren().addAll(set5, set10, set15);
     }
@@ -188,12 +161,12 @@ public class App extends Application {
         Button areaCheckDescription = new Button("Press it to enable area check. Afterwards use right mouse button");
 
         EventHandler<? super MouseEvent> mapMouseHandler = (EventHandler<MouseEvent>) event -> {
-            area = (double) (((Slider) event.getSource()).getValue());
+            area = ((Slider) event.getSource()).getValue();
             if (areaCheckDescription.getStyle().equals("-fx-background-color: #30d24b"))
                 userThread.refresh();
         };
         EventHandler<? super KeyEvent> mapKeyHandler = (EventHandler<KeyEvent>) event -> {
-            area = (double) (((Slider) event.getSource()).getValue());
+            area = ((Slider) event.getSource()).getValue();
             if (areaCheckDescription.getStyle().equals("-fx-background-color: #30d24b"))
                 userThread.refresh();
         };
@@ -209,16 +182,13 @@ public class App extends Application {
 
         areaCheckDescription.setStyle("-fx-background-color: #d29f30");
 
-        areaCheckDescription.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                doAreaCheck = !doAreaCheck;
-                if (areaCheckDescription.getStyle().equals("-fx-background-color: #d29f30"))
-                    areaCheckDescription.setStyle("-fx-background-color: #30d24b");
-                else
-                    areaCheckDescription.setStyle("-fx-background-color: #d29f30");
-                userThread.refresh();
-            }
+        areaCheckDescription.setOnAction(event -> {
+            doAreaCheck = !doAreaCheck;
+            if (areaCheckDescription.getStyle().equals("-fx-background-color: #d29f30"))
+                areaCheckDescription.setStyle("-fx-background-color: #30d24b");
+            else
+                areaCheckDescription.setStyle("-fx-background-color: #d29f30");
+            userThread.refresh();
         });
 
         Label sliderDescription = new Label("0 m                                          1000 m                                     2000 m");
@@ -251,7 +221,7 @@ public class App extends Application {
     }
 
     @Override
-    public void start(Stage stage){
+    public void start(Stage stage) {
 
         Thread thread = new Thread(userThread, "T1");
 
@@ -260,12 +230,9 @@ public class App extends Application {
         stage.setHeight(800);
         stage.show();
 
-        stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-            @Override
-            public void handle(WindowEvent t) {
-                userThread.refresh();
-                userThread.stop();
-            }
+        stage.setOnCloseRequest(t -> {
+            userThread.refresh();
+            userThread.stop();
         });
 
         Scene scene = new Scene(stackPane);
@@ -289,116 +256,6 @@ public class App extends Application {
         addAreaButtons();
     }
 
-    public class MyRunnable implements Runnable {
-
-        private volatile boolean exit = false;
-        boolean keepWaiting = true;
-
-        public void stop() {
-            exit = true;
-        }
-
-        public void refresh() {
-            keepWaiting = false;
-        }
-
-        @Override
-
-        public void run() {
-
-            while (!exit) {
-                GraphicsOverlay myGraphics = new GraphicsOverlay();
-                ArrayList<Point> myBusesPointsArray = new ArrayList<>();
-                GetBusDoublePosition arrayDonorSystem = new GetBusDoublePosition();
-
-                mapView.getGraphicsOverlays().add(myGraphics);
-
-                String longStringBusInput = null;
-                try {
-                    longStringBusInput = GetMpkData.getMpkData(vehicleToShowList);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                if ((!(Objects.equals(longStringBusInput, "[]"))) && (!Objects.equals(longStringBusInput, ""))) {
-
-                    for (String vehicleNumber : vehicleToShowList) {
-                        arrayDonorSystem.setPos(longStringBusInput, vehicleNumber, 'x');
-                        arrayDonorSystem.setPos(longStringBusInput, vehicleNumber, 'q');
-
-                        int busSize = arrayDonorSystem.getBusXPositions().size();
-                        myBusesPointsArray.clear();
-
-                        for (int i = 0; i < busSize; i++) {
-                            myBusesPointsArray.add(new Point(arrayDonorSystem.getBusYPositions().get(i), arrayDonorSystem.getBusXPositions().get(i), SpatialReferences.getWgs84()));
-                        }
-                        busName = arrayDonorSystem.getBusnames();
-
-                        myGraphics.getGraphics().clear();
-
-                        boolean isBusInArea = false;
-                        for (int i = 0; i < myBusesPointsArray.size(); i++) {
-
-                            int color;
-                            if (!isTram(busName.get(i)))
-                                color = 0xFFFF0000;
-                            else
-                                color = 0xFF0000FF;
-
-                            SimpleMarkerSymbol marker = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.SQUARE, color, 12);
-
-                            myGraphics.getGraphics().add(new Graphic(myBusesPointsArray.get(i), marker));
-                            TextSymbol markerNr = new TextSymbol();
-                            markerNr.setText(busName.get(i));
-                            if (isTram(busName.get(i)))
-                                markerNr.setColor(0xFFFFFFFF);
-                            markerNr.setSize(10);
-                            myGraphics.getGraphics().add(new Graphic(myBusesPointsArray.get(i), markerNr));
-
-                            if (doAreaCheck) {
-
-                                PointCollection points = new PointCollection(SpatialReferences.getWgs84());
-
-                                for (int j = 0; j < 31; j++) {
-                                    double x_onCircle = areaCheckPointX + (area * 0.01 * 1.533 * Math.cos(j * ((2 * Math.PI) / 30)));
-                                    double y_onCircle = areaCheckPointY + (area * 0.01 * 1.533 * 0.62 * Math.sin(j * ((2 * Math.PI) / 30)));
-                                    points.add(new Point(x_onCircle, y_onCircle));
-                                }
-
-
-                                Polygon surveillanceArea = new Polygon(points);
-
-                                SimpleLineSymbol lineAroundArea = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, 0xFFFF0000, 2);
-                                SimpleFillSymbol polygonSymbol = new SimpleFillSymbol(SimpleFillSymbol.Style.SOLID, 0x10F0F000, lineAroundArea);
-
-                                myGraphics.getGraphics().add(new Graphic(surveillanceArea, polygonSymbol));
-
-                                SimpleMarkerSymbol areaMarker = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, 0xFFFF0000, 7);
-                                Point areaMarkerPoint = new Point(areaCheckPointX, areaCheckPointY, SpatialReferences.getWgs84());
-                                myGraphics.getGraphics().add(new Graphic(areaMarkerPoint, areaMarker));
-
-                                if (distanceBetweenPositions(myBusesPointsArray.get(i).getX(), myBusesPointsArray.get(i).getY(), areaCheckPointX, areaCheckPointY) <= area) {
-                                    isBusInArea = true;
-
-                                }
-                            }
-                        }
-                        areaInformation.setVisible(isBusInArea);
-                    }
-                }
-                keepWaiting = true;
-                for (int i = 0; i < 50; i++)
-                    if (keepWaiting) {
-                        try {
-                            Thread.sleep(sleepTime / 50);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                myGraphics.getGraphics().clear();
-            }
-        }
-    }
-
     @Override
     public void stop() {
 
@@ -406,6 +263,5 @@ public class App extends Application {
             mapView.dispose();
         }
     }
-
 
 }
