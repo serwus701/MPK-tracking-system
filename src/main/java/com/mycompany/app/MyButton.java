@@ -9,7 +9,7 @@ public class MyButton {
     Button myButton;
     boolean isOn;
 
-    public MyButton(String myName){
+    public MyButton(String myName) {
         name = myName;
         myButton = new Button(myName);
         isOn = false;
@@ -17,27 +17,29 @@ public class MyButton {
         myButton.setStyle("-fx-background-color: White");
     }
 
-    void press(boolean isBus, LinkedList<String> vehicleToShowList){
+    void press(boolean isBus, LinkedList<String> vehicleToShowList) {
         ButtonsManagement myButtons = new ButtonsManagement();
 
-        if(isOn){
+        if (isOn) {
             myButtons.deleteRequest(vehicleToShowList, name);
             myButton.setStyle("-fx-background-color: White");
             isOn = false;
-        }
-        else{
+        } else {
             myButtons.addRequest(vehicleToShowList, name);
             myButton.setStyle("-fx-background-color: MediumSeaGreen");
             isOn = true;
         }
     }
-    Button getMyButton(){return myButton;}
+
+    Button getMyButton() {
+        return myButton;
+    }
 
     public boolean getIsOn() {
         return isOn;
     }
 
-    String getName(){
+    String getName() {
         return name;
     }
 }

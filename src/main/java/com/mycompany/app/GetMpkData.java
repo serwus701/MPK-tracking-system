@@ -14,12 +14,12 @@ public class GetMpkData {
     private static HttpURLConnection con;
 
 
-    public static String getMpkData(LinkedList<String>requestedLines) throws IOException {
+    public static String getMpkData(LinkedList<String> requestedLines) throws IOException {
         var url = "https://mpk.wroc.pl/bus_position";
 
         var urlParameters = new StringBuilder();
 
-        for(String param: requestedLines){
+        for (String param : requestedLines) {
             urlParameters.append("busList[][]=").append(param).append("&");
         }
 

@@ -357,21 +357,20 @@ public class App extends Application {
                             myGraphics.getGraphics().add(new Graphic(myBusesPointsArray.get(i), markerNr));
 
                             if (doAreaCheck) {
-                                System.out.println();
 
                                 PointCollection points = new PointCollection(SpatialReferences.getWgs84());
 
                                 for (int j = 0; j < 31; j++) {
-                                    double x_onCircle = areaCheckPointX + (area * 0.009 *1.533 * Math.cos(j * ((2 * Math.PI) / 30)));
-                                    double y_onCircle = areaCheckPointY + (area * 0.009 *1.533 * 0.62 * Math.sin(j * ((2 * Math.PI) / 30)));
+                                    double x_onCircle = areaCheckPointX + (area * 0.009 * 1.533 * Math.cos(j * ((2 * Math.PI) / 30)));
+                                    double y_onCircle = areaCheckPointY + (area * 0.009 * 1.533 * 0.62 * Math.sin(j * ((2 * Math.PI) / 30)));
                                     points.add(new Point(x_onCircle, y_onCircle));
                                 }
 
 
                                 Polygon surveillanceArea = new Polygon(points);
 
-                                SimpleLineSymbol redLine = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, 0xFFFF0000, 2);
-                                SimpleFillSymbol polygonSymbol = new SimpleFillSymbol(SimpleFillSymbol.Style.SOLID, 0x1000B100, redLine);
+                                SimpleLineSymbol lineAroundArea = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, 0xFFFF0000, 2);
+                                SimpleFillSymbol polygonSymbol = new SimpleFillSymbol(SimpleFillSymbol.Style.SOLID, 0x1000B100, lineAroundArea);
 
                                 myGraphics.getGraphics().add(new Graphic(surveillanceArea, polygonSymbol));
 
@@ -379,9 +378,6 @@ public class App extends Application {
                                 Point areaMarkerPoint = new Point(areaCheckPointX, areaCheckPointY, SpatialReferences.getWgs84());
                                 myGraphics.getGraphics().add(new Graphic(areaMarkerPoint, areaMarker));
 
-                                System.out.println("Pizda");
-                                System.out.println(distanceBetweenPositions(myBusesPointsArray.get(i).getX(), myBusesPointsArray.get(i).getY(), areaCheckPointX, areaCheckPointY));
-                                System.out.println(area);
                                 if (distanceBetweenPositions(myBusesPointsArray.get(i).getX(), myBusesPointsArray.get(i).getY(), areaCheckPointX, areaCheckPointY) <= area) {
                                     isBusInArea = true;
                                 }
