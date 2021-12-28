@@ -7,6 +7,8 @@ import com.esri.arcgisruntime.mapping.ArcGISMap;
 import com.esri.arcgisruntime.mapping.view.Graphic;
 import com.esri.arcgisruntime.mapping.view.GraphicsOverlay;
 import com.esri.arcgisruntime.mapping.view.MapView;
+import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
+import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
 import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
 import com.esri.arcgisruntime.symbology.TextSymbol;
 import javafx.application.Application;
@@ -32,7 +34,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class App extends Application {
 
@@ -45,7 +46,7 @@ public class App extends Application {
     double areaCheckPointX = 17.036694;
     double areaCheckPointY = 51.11114;
     int sleepTime = 5000;
-    double value;
+    double area = 1;
     Label areaInformation = new Label("Your vehicle is in the area");
 
     public static void main(String[] args) {
@@ -79,7 +80,7 @@ public class App extends Application {
         double c = 2 * Math.asin(Math.sqrt(a));
         double r = 3956;
 
-        return c * r;
+        return c * r * 1.62;
     }
 
     @Override
@@ -96,6 +97,7 @@ public class App extends Application {
         stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent t) {
+                userThread.refresh();
                 userThread.stop();
             }
         });
@@ -201,33 +203,41 @@ public class App extends Application {
             @Override
             public void handle(ActionEvent event) {
                 sleepTime = 5000;
+                userThread.refresh();
             }
         });
         set10.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 sleepTime = 10000;
+                userThread.refresh();
             }
         });
         set15.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 sleepTime = 15000;
+                userThread.refresh();
             }
         });
         intervalBox.getChildren().addAll(set5, set10, set15);
 
         VBox areaStuff = new VBox();
 
-        Slider areaSlider = new Slider(0, 2000, 1000);
+        Slider areaSlider = new Slider(0, 2, 1);
+        areaSlider.setMaxWidth(360);
+
+        Button areaCheckDescription = new Button("Press it to enable area check. Afterwards use right mouse button");
 
         EventHandler<? super MouseEvent> mapMouseHandler = (EventHandler<MouseEvent>) event -> {
-            value = (double) (((Slider) event.getSource()).getValue());
-            System.out.println(value);
+            area = (double) (((Slider) event.getSource()).getValue());
+            if (areaCheckDescription.getStyle().equals("-fx-background-color: #30d24b"))
+                userThread.refresh();
         };
         EventHandler<? super KeyEvent> mapKeyHandler = (EventHandler<KeyEvent>) event -> {
-            value = (double) (((Slider) event.getSource()).getValue());
-            System.out.println(value);
+            area = (double) (((Slider) event.getSource()).getValue());
+            if (areaCheckDescription.getStyle().equals("-fx-background-color: #30d24b"))
+                userThread.refresh();
         };
 
         areaSlider.setOnMouseReleased(mapMouseHandler);
@@ -236,9 +246,8 @@ public class App extends Application {
         stackPane.getChildren().add(areaStuff);
         StackPane.setAlignment(areaStuff, Pos.TOP_CENTER);
         areaStuff.setMaxWidth(400);
-        areaStuff.setMaxHeight(30);
+        areaStuff.setMaxHeight(40);
 
-        Button areaCheckDescription = new Button("Press it to enable area check. Afterwards use right mouse button");
         areaCheckDescription.setStyle("-fx-background-color: #d29f30");
 
         areaCheckDescription.setOnAction(new EventHandler<ActionEvent>() {
@@ -249,11 +258,16 @@ public class App extends Application {
                     areaCheckDescription.setStyle("-fx-background-color: #30d24b");
                 else
                     areaCheckDescription.setStyle("-fx-background-color: #d29f30");
+                userThread.refresh();
             }
         });
 
+        Label sliderDescription = new Label("0 m                                          1000 m                                     2000 m");
+        sliderDescription.setStyle("-fx-background-color: #6cf13b");
+
         areaStuff.getChildren().add(areaCheckDescription);
         areaStuff.getChildren().add(areaSlider);
+        areaStuff.getChildren().add(sliderDescription);
         areaStuff.getChildren().add(areaInformation);
 
 
@@ -266,6 +280,9 @@ public class App extends Application {
                 String[] splitCoordinates = coordinatesString.split(" ");
                 areaCheckPointY = Double.parseDouble(splitCoordinates[0].replace("N", ""));
                 areaCheckPointX = Double.parseDouble((splitCoordinates[1].replace("E", "")));
+
+                if (areaCheckDescription.getStyle().equals("-fx-background-color: #30d24b"))
+                    userThread.refresh();
             }
         };
         mapView.setOnMouseClicked(mapMouseButtonHandler);
@@ -283,7 +300,7 @@ public class App extends Application {
             exit = true;
         }
 
-        public void refresh(){
+        public void refresh() {
             keepWaiting = false;
         }
 
@@ -340,11 +357,32 @@ public class App extends Application {
                             myGraphics.getGraphics().add(new Graphic(myBusesPointsArray.get(i), markerNr));
 
                             if (doAreaCheck) {
+                                System.out.println();
+
+                                PointCollection points = new PointCollection(SpatialReferences.getWgs84());
+
+                                for (int j = 0; j < 31; j++) {
+                                    double x_onCircle = areaCheckPointX + (area * 0.009 *1.533 * Math.cos(j * ((2 * Math.PI) / 30)));
+                                    double y_onCircle = areaCheckPointY + (area * 0.009 *1.533 * 0.62 * Math.sin(j * ((2 * Math.PI) / 30)));
+                                    points.add(new Point(x_onCircle, y_onCircle));
+                                }
+
+
+                                Polygon surveillanceArea = new Polygon(points);
+
+                                SimpleLineSymbol redLine = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, 0xFFFF0000, 2);
+                                SimpleFillSymbol polygonSymbol = new SimpleFillSymbol(SimpleFillSymbol.Style.SOLID, 0x1000B100, redLine);
+
+                                myGraphics.getGraphics().add(new Graphic(surveillanceArea, polygonSymbol));
+
                                 SimpleMarkerSymbol areaMarker = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, 0xFFFF0000, 7);
                                 Point areaMarkerPoint = new Point(areaCheckPointX, areaCheckPointY, SpatialReferences.getWgs84());
                                 myGraphics.getGraphics().add(new Graphic(areaMarkerPoint, areaMarker));
 
-                                if (distanceBetweenPositions(myBusesPointsArray.get(i).getX(), myBusesPointsArray.get(i).getY(), areaCheckPointX, areaCheckPointY) < value / 1000) {
+                                System.out.println("Pizda");
+                                System.out.println(distanceBetweenPositions(myBusesPointsArray.get(i).getX(), myBusesPointsArray.get(i).getY(), areaCheckPointX, areaCheckPointY));
+                                System.out.println(area);
+                                if (distanceBetweenPositions(myBusesPointsArray.get(i).getX(), myBusesPointsArray.get(i).getY(), areaCheckPointX, areaCheckPointY) <= area) {
                                     isBusInArea = true;
                                 }
                             }
@@ -353,10 +391,10 @@ public class App extends Application {
                     }
                 }
                 keepWaiting = true;
-                for(int i=0; i<20; i++)
-                    if(keepWaiting) {
+                for (int i = 0; i < 50; i++)
+                    if (keepWaiting) {
                         try {
-                            Thread.sleep(sleepTime/20);
+                            Thread.sleep(sleepTime / 50);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
