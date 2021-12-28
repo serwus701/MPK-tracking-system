@@ -37,7 +37,9 @@ import java.util.Objects;
 
 public class App extends Application {
 
+    MyRunnable userThread = new MyRunnable();
     static MapView mapView;
+    StackPane stackPane = new StackPane();
     ArrayList<MyButton> buses = new ArrayList<>();
     ArrayList<MyButton> trams = new ArrayList<>();
     ArrayList<String> busName = new ArrayList<>();
@@ -58,67 +60,19 @@ public class App extends Application {
         if ((busNr.equals("1") || busNr.equals("2") || busNr.equals("3") || busNr.equals("4") || busNr.equals("5") || busNr.equals("6") || busNr.equals("7") || busNr.equals("8") || busNr.equals("9") || busNr.equals("10"))) {
             return true;
         }
-        if (busNr.equals("11") || busNr.equals("15") || busNr.equals("16") || busNr.equals("17") || busNr.equals("20") || busNr.equals("23") || busNr.equals("31") || busNr.equals("33") || busNr.equals("70") || busNr.equals("74")) {
-            return true;
-        }
-        return false;
+        return busNr.equals("11") || busNr.equals("15") || busNr.equals("16") || busNr.equals("17") || busNr.equals("20") || busNr.equals("23") || busNr.equals("31") || busNr.equals("33") || busNr.equals("70") || busNr.equals("74");
     }
 
-    double distanceBetweenPositions(double x1, double y1, double x2, double y2) {
+    double distanceBetweenPositions(double latitudeGeo1, double longitudeGeo1, double latitudeGeo2, double longitudeGeo2) {
+        latitudeGeo1 = latitudeGeo1 / 1.65;
+        latitudeGeo2 = latitudeGeo2 / 1.65;
+        double p = 0.017453292519943295;
+        double a = 0.5 - Math.cos((latitudeGeo2 - latitudeGeo1) * p) / 2 + Math.cos(latitudeGeo1 * p) * Math.cos(latitudeGeo2 * p) * (1 - Math.cos((longitudeGeo2 - longitudeGeo1) * p)) / 2;
 
-        x1 = Math.toRadians(x1);
-        x2 = Math.toRadians(x2);
-        y1 = Math.toRadians(y1);
-        y2 = Math.toRadians(y2);
-
-        double dlon = y2 - y1;
-        double dlat = x2 - x1;
-        double a = Math.pow(Math.sin(dlat / 2), 2)
-                + Math.cos(x1) * Math.cos(x2)
-                * Math.pow(Math.sin(dlon / 2), 2);
-
-        double c = 2 * Math.asin(Math.sqrt(a));
-        double r = 3956;
-
-        return c * r * 1.62;
+        return 12742 * Math.asin(Math.sqrt(a));
     }
 
-    @Override
-    public void start(Stage stage) throws IOException, InterruptedException {
-
-        MyRunnable userThread = new MyRunnable();
-        Thread thread = new Thread(userThread, "T1");
-
-        stage.setTitle("Mpk Wroclaw");
-        stage.setWidth(1200);
-        stage.setHeight(800);
-        stage.show();
-
-        stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-            @Override
-            public void handle(WindowEvent t) {
-                userThread.refresh();
-                userThread.stop();
-            }
-        });
-
-
-        StackPane stackPane = new StackPane();
-        Scene scene = new Scene(stackPane);
-        stage.setScene(scene);
-
-        String yourApiKey = "AAPK252690f93bdf4a97873eabb3a8ab7265IOKa3PonrswUJwppgQfTIKQ-6z96Q7jzyw5iuVZk2sSosqKtmmZb2UGfarSrBkrT";
-        ArcGISRuntimeEnvironment.setApiKey(yourApiKey);
-
-        mapView = new MapView();
-        stackPane.getChildren().add(mapView);
-        ArcGISMap map = new ArcGISMap(BasemapStyle.ARCGIS_NAVIGATION);
-        mapView.setMap(map);
-        mapView.setViewpoint(new Viewpoint(51.11114, 17.036694, 90000));
-
-
-        thread.start();
-
+    void addBussesButtons() {
         VBox busVbox1 = new VBox();
         VBox busVbox2 = new VBox();
         VBox busVbox3 = new VBox();
@@ -182,7 +136,9 @@ public class App extends Application {
                 }
             });
         }
+    }
 
+    void addIntervalButtons() {
         VBox refreshBox = new VBox();
         HBox intervalBox = new HBox();
         Label refreshInstructions = new Label("Choose refresh rate");
@@ -221,7 +177,9 @@ public class App extends Application {
             }
         });
         intervalBox.getChildren().addAll(set5, set10, set15);
+    }
 
+    void addAreaButtons() {
         VBox areaStuff = new VBox();
 
         Slider areaSlider = new Slider(0, 2, 1);
@@ -241,6 +199,7 @@ public class App extends Application {
         };
 
         areaSlider.setOnMouseReleased(mapMouseHandler);
+        areaSlider.setOnKeyReleased(mapKeyHandler);
 
 
         stackPane.getChildren().add(areaStuff);
@@ -291,6 +250,45 @@ public class App extends Application {
         areaInformation.setVisible(false);
     }
 
+    @Override
+    public void start(Stage stage){
+
+        Thread thread = new Thread(userThread, "T1");
+
+        stage.setTitle("Mpk Wroclaw");
+        stage.setWidth(1200);
+        stage.setHeight(800);
+        stage.show();
+
+        stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent t) {
+                userThread.refresh();
+                userThread.stop();
+            }
+        });
+
+        Scene scene = new Scene(stackPane);
+        stage.setScene(scene);
+
+        String yourApiKey = "AAPK252690f93bdf4a97873eabb3a8ab7265IOKa3PonrswUJwppgQfTIKQ-6z96Q7jzyw5iuVZk2sSosqKtmmZb2UGfarSrBkrT";
+        ArcGISRuntimeEnvironment.setApiKey(yourApiKey);
+
+        mapView = new MapView();
+        stackPane.getChildren().add(mapView);
+        ArcGISMap map = new ArcGISMap(BasemapStyle.ARCGIS_NAVIGATION);
+        mapView.setMap(map);
+        mapView.setViewpoint(new Viewpoint(51.11114, 17.036694, 90000));
+
+        thread.start();
+
+        addBussesButtons();
+
+        addIntervalButtons();
+
+        addAreaButtons();
+    }
+
     public class MyRunnable implements Runnable {
 
         private volatile boolean exit = false;
@@ -310,10 +308,10 @@ public class App extends Application {
 
             while (!exit) {
                 GraphicsOverlay myGraphics = new GraphicsOverlay();
-                mapView.getGraphicsOverlays().add(myGraphics);
                 ArrayList<Point> myBusesPointsArray = new ArrayList<>();
-
                 GetBusDoublePosition arrayDonorSystem = new GetBusDoublePosition();
+
+                mapView.getGraphicsOverlays().add(myGraphics);
 
                 String longStringBusInput = null;
                 try {
@@ -361,8 +359,8 @@ public class App extends Application {
                                 PointCollection points = new PointCollection(SpatialReferences.getWgs84());
 
                                 for (int j = 0; j < 31; j++) {
-                                    double x_onCircle = areaCheckPointX + (area * 0.009 * 1.533 * Math.cos(j * ((2 * Math.PI) / 30)));
-                                    double y_onCircle = areaCheckPointY + (area * 0.009 * 1.533 * 0.62 * Math.sin(j * ((2 * Math.PI) / 30)));
+                                    double x_onCircle = areaCheckPointX + (area * 0.01 * 1.533 * Math.cos(j * ((2 * Math.PI) / 30)));
+                                    double y_onCircle = areaCheckPointY + (area * 0.01 * 1.533 * 0.62 * Math.sin(j * ((2 * Math.PI) / 30)));
                                     points.add(new Point(x_onCircle, y_onCircle));
                                 }
 
@@ -370,7 +368,7 @@ public class App extends Application {
                                 Polygon surveillanceArea = new Polygon(points);
 
                                 SimpleLineSymbol lineAroundArea = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, 0xFFFF0000, 2);
-                                SimpleFillSymbol polygonSymbol = new SimpleFillSymbol(SimpleFillSymbol.Style.SOLID, 0x1000B100, lineAroundArea);
+                                SimpleFillSymbol polygonSymbol = new SimpleFillSymbol(SimpleFillSymbol.Style.SOLID, 0x10F0F000, lineAroundArea);
 
                                 myGraphics.getGraphics().add(new Graphic(surveillanceArea, polygonSymbol));
 
@@ -380,6 +378,7 @@ public class App extends Application {
 
                                 if (distanceBetweenPositions(myBusesPointsArray.get(i).getX(), myBusesPointsArray.get(i).getY(), areaCheckPointX, areaCheckPointY) <= area) {
                                     isBusInArea = true;
+
                                 }
                             }
                         }
