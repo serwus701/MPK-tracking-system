@@ -11,11 +11,10 @@ import java.util.LinkedList;
 
 public class GetMpkData {
 
-    private static HttpURLConnection con;
-
+    private static HttpURLConnection connection;
 
     public static String getMpkData(LinkedList<String> requestedLines) throws IOException {
-        var url = "https://mpk.wroc.pl/bus_position";
+        var urlAddress = "https://mpk.wroc.pl/bus_position";
 
         var urlParameters = new StringBuilder();
 
@@ -26,35 +25,33 @@ public class GetMpkData {
         byte[] postBody = urlParameters.toString().getBytes(StandardCharsets.UTF_8);
 
         try {
-            var myUrl = new URL(url);
+            var myUrl = new URL(urlAddress);
 
-            con = (HttpURLConnection) myUrl.openConnection();
-            con.setDoOutput(true);
-            con.setRequestMethod("POST");
+            connection = (HttpURLConnection) myUrl.openConnection();
+            connection.setDoOutput(true);
+            connection.setRequestMethod("POST");
 
-
-            try (DataOutputStream body = new DataOutputStream(con.getOutputStream())) {
+            try (DataOutputStream body = new DataOutputStream(connection.getOutputStream())) {
                 body.write(postBody);
             }
 
-            StringBuilder results;
-            String currLine;
+            StringBuilder output;
+            String currentLine;
 
-            try (var reader = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
+            try (var myReader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
 
-                results = new StringBuilder();
+                output = new StringBuilder();
 
-                while ((currLine = reader.readLine()) != null) {
-                    results.append(currLine);
+                while ((currentLine = myReader.readLine()) != null) {
+                    output.append(currentLine);
                 }
             }
-            return results.toString();
+            return output.toString();
 
         } finally {
-            con.disconnect();
+            connection.disconnect();
         }
 
 
     }
-
 }

@@ -6,10 +6,7 @@ import java.util.Objects;
 
 public class ButtonsManagement {
 
-    ArrayList<MyButton> buses = new ArrayList<>();
-    ArrayList<MyButton> trams = new ArrayList<>();
-
-    void deleteRequest(List<String> busNumbers, String numberToDelete) {
+    public static void deleteRequest(List<String> busNumbers, String numberToDelete) {
         for (String eachNumber : busNumbers) {
             if (Objects.equals(numberToDelete, eachNumber)) {
                 busNumbers.remove(eachNumber);
@@ -18,7 +15,7 @@ public class ButtonsManagement {
         }
     }
 
-    void addRequest(List<String> busNumbers, String numberToAdd) {
+    public static void addRequest(List<String> busNumbers, String numberToAdd) {
         for (String eachNumber : busNumbers) {
             if (Objects.equals(numberToAdd, eachNumber)) {
                 return;
@@ -27,7 +24,10 @@ public class ButtonsManagement {
         busNumbers.add(numberToAdd);
     }
 
-    void fillBusesButtons() {
+    public static ArrayList<MyButton> fillBusesButtons() {
+
+        ArrayList<MyButton> buses = new ArrayList<>();
+
         buses.add(new MyButton("a"));
         buses.add(new MyButton("c"));
         buses.add(new MyButton("d"));
@@ -61,9 +61,14 @@ public class ButtonsManagement {
         buses.add(new MyButton("607"));
         buses.add(new MyButton("703"));
         buses.add(new MyButton("731"));
+
+        return buses;
     }
 
-    void fillTramsButtons() {
+    public static ArrayList<MyButton> fillTramsButtons() {
+
+        ArrayList<MyButton> trams = new ArrayList<>();
+
         for (int i = 1; i < 12; i++) {
             trams.add(new MyButton(String.valueOf(i)));
         }
@@ -76,13 +81,7 @@ public class ButtonsManagement {
         trams.add(new MyButton("33"));
         trams.add(new MyButton("70"));
         trams.add(new MyButton("74"));
-    }
 
-    ArrayList<MyButton> getBuses() {
-        return buses;
-    }
-
-    ArrayList<MyButton> getTrams() {
         return trams;
     }
 }

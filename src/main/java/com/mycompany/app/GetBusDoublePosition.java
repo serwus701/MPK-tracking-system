@@ -4,11 +4,22 @@ import java.util.ArrayList;
 
 public class GetBusDoublePosition {
 
-    ArrayList<Double> busXPositions = new ArrayList<>();
-    ArrayList<Double> busYPositions = new ArrayList<>();
-    ArrayList<String> busName = new ArrayList<>();
+    private final ArrayList<Double> busXPositions;
+    private final ArrayList<Double> busYPositions;
+    private final ArrayList<String> busName;
 
-    void setPos(String input, String busNr, char xOrY) {
+    private static String[] splitMyInput(String input) {
+        input = input.replace("[", "");
+        input = input.replace("]", "");
+        input = input.replace("{", "");
+        input = input.replace("},", "!");
+        input = input.replace("\"y\"", "\"q\"");
+
+        return input.split("!");
+
+    }
+
+    private void setPos(String input, String busNr, char xOrY) {
 
         String[] myBusList = splitMyInput(input);
         String strTempBusNr;
@@ -46,28 +57,32 @@ public class GetBusDoublePosition {
         }
     }
 
-    static String[] splitMyInput(String input) {
-        input = input.replace("[", "");
-        input = input.replace("]", "");
-        input = input.replace("{", "");
-        input = input.replace("},", "!");
-        input = input.replace("\"y\"", "\"q\"");
-
-        return input.split("!");
-
+    public GetBusDoublePosition() {
+        busXPositions = new ArrayList<>();
+        busYPositions = new ArrayList<>();
+        busName = new ArrayList<>();
     }
 
-    ArrayList<Double> getBusXPositions() {
+    public void setPositions(String input, String busNr) {
+        setPos(input, busNr, 'x');
+        setPos(input, busNr, 'q');
+    }
+
+    public void clear() {
+        busXPositions.clear();
+        busYPositions.clear();
+        busName.clear();
+    }
+
+    public ArrayList<Double> getBusXPositions() {
         return busXPositions;
     }
 
-    ArrayList<Double> getBusYPositions() {
+    public ArrayList<Double> getBusYPositions() {
         return busYPositions;
     }
 
-    ArrayList<String> getBusNames() {
+    public ArrayList<String> getBusNames() {
         return busName;
     }
-
-
 }

@@ -5,9 +5,9 @@ import javafx.scene.control.Button;
 import java.util.LinkedList;
 
 public class MyButton {
-    String name;
-    Button myButton;
-    boolean isOn;
+    private final String name;
+    private final Button myButton;
+    private boolean isOn;
 
     public MyButton(String myName) {
         name = myName;
@@ -17,21 +17,20 @@ public class MyButton {
         myButton.setStyle("-fx-background-color: White");
     }
 
-    void press(LinkedList<String> vehicleToShowList) {
-        ButtonsManagement myButtons = new ButtonsManagement();
+    public void press(LinkedList<String> vehicleToShowList) {
 
         if (isOn) {
-            myButtons.deleteRequest(vehicleToShowList, name);
+            ButtonsManagement.deleteRequest(vehicleToShowList, name);
             myButton.setStyle("-fx-background-color: White");
             isOn = false;
         } else {
-            myButtons.addRequest(vehicleToShowList, name);
+            ButtonsManagement.addRequest(vehicleToShowList, name);
             myButton.setStyle("-fx-background-color: MediumSeaGreen");
             isOn = true;
         }
     }
 
-    Button getMyButton() {
+    public Button getMyButton() {
         return myButton;
     }
 }

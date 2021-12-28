@@ -4,6 +4,7 @@ import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
 import com.esri.arcgisruntime.geometry.*;
 import com.esri.arcgisruntime.mapping.BasemapStyle;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
+import com.esri.arcgisruntime.mapping.view.GraphicsOverlay;
 import com.esri.arcgisruntime.mapping.view.MapView;
 import javafx.application.Application;
 import javafx.event.EventHandler;
@@ -25,42 +26,35 @@ import java.util.LinkedList;
 
 public class App extends Application {
 
-    PaintingThread userThread = new PaintingThread(this);
-    MapView mapView;
-    StackPane stackPane = new StackPane();
-    ArrayList<MyButton> buses = new ArrayList<>();
-    ArrayList<MyButton> trams = new ArrayList<>();
-    ArrayList<String> busName = new ArrayList<>();
-    LinkedList<String> vehicleToShowList = new LinkedList<>();
-    boolean doAreaCheck = false;
-    double areaCheckPointX = 17.036694;
-    double areaCheckPointY = 51.11114;
-    int sleepTime = 5000;
-    double area = 1;
-    Label areaInformation = new Label("Your vehicle is in the area");
+    private final Label areaDetectionLabel;
+    private final PaintingThread userThread;
+    private final StackPane stackPane;
+    private final LinkedList<String> vehicleToShowList;
+    private MapView mapView;
+    private boolean doAreaCheck;
+    private double areaCheckPointX;
+    private double areaCheckPointY;
+    private int sleepTime;
+    private double area;
+
+    public App() {
+        userThread = new PaintingThread(this);
+        stackPane = new StackPane();
+        vehicleToShowList = new LinkedList<>();
+        doAreaCheck = false;
+        areaCheckPointX = 17.036694;
+        areaCheckPointY = 51.11114;
+        sleepTime = 5000;
+        area = 1;
+        areaDetectionLabel = new Label("Your vehicle is in the area");
+    }
 
     public static void main(String[] args) {
 
         Application.launch(args);
     }
 
-    boolean isTram(String busNr) {
-        if ((busNr.equals("1") || busNr.equals("2") || busNr.equals("3") || busNr.equals("4") || busNr.equals("5") || busNr.equals("6") || busNr.equals("7") || busNr.equals("8") || busNr.equals("9") || busNr.equals("10"))) {
-            return true;
-        }
-        return busNr.equals("11") || busNr.equals("15") || busNr.equals("16") || busNr.equals("17") || busNr.equals("20") || busNr.equals("23") || busNr.equals("31") || busNr.equals("33") || busNr.equals("70") || busNr.equals("74");
-    }
-
-    double distanceBetweenPositions(double latitudeGeo1, double longitudeGeo1, double latitudeGeo2, double longitudeGeo2) {
-        latitudeGeo1 = latitudeGeo1 / 1.65;
-        latitudeGeo2 = latitudeGeo2 / 1.65;
-        double p = 0.017453292519943295;
-        double a = 0.5 - Math.cos((latitudeGeo2 - latitudeGeo1) * p) / 2 + Math.cos(latitudeGeo1 * p) * Math.cos(latitudeGeo2 * p) * (1 - Math.cos((longitudeGeo2 - longitudeGeo1) * p)) / 2;
-
-        return 12742 * Math.asin(Math.sqrt(a));
-    }
-
-    void addBussesButtons() {
+    private void addBussesButtons() {
         VBox busVbox1 = new VBox();
         VBox busVbox2 = new VBox();
         VBox busVbox3 = new VBox();
@@ -84,13 +78,8 @@ public class App extends Application {
         stackPane.getChildren().add(busBox);
         stackPane.getChildren().add(tramVbox);
 
-
-        ButtonsManagement myButtons = new ButtonsManagement();
-        myButtons.fillBusesButtons();
-        myButtons.fillTramsButtons();
-
-        buses = myButtons.getBuses();
-        trams = myButtons.getTrams();
+        ArrayList<MyButton> buses = ButtonsManagement.fillBusesButtons();
+        ArrayList<MyButton> trams = ButtonsManagement.fillTramsButtons();
 
         for (int i = 0; i < 27; i++) {
             busVbox1.getChildren().add(buses.get(i).getMyButton());
@@ -120,7 +109,7 @@ public class App extends Application {
         }
     }
 
-    void addIntervalButtons() {
+    private void addIntervalButtons() {
         VBox refreshBox = new VBox();
         HBox intervalBox = new HBox();
         Label refreshInstructions = new Label("Choose refresh rate");
@@ -152,7 +141,7 @@ public class App extends Application {
         intervalBox.getChildren().addAll(set5, set10, set15);
     }
 
-    void addAreaButtons() {
+    private void addAreaButtons() {
         VBox areaStuff = new VBox();
 
         Slider areaSlider = new Slider(0, 2, 1);
@@ -197,7 +186,7 @@ public class App extends Application {
         areaStuff.getChildren().add(areaCheckDescription);
         areaStuff.getChildren().add(areaSlider);
         areaStuff.getChildren().add(sliderDescription);
-        areaStuff.getChildren().add(areaInformation);
+        areaStuff.getChildren().add(areaDetectionLabel);
 
 
         EventHandler<? super MouseEvent> mapMouseButtonHandler = (EventHandler<MouseEvent>) event -> {
@@ -216,8 +205,8 @@ public class App extends Application {
         };
         mapView.setOnMouseClicked(mapMouseButtonHandler);
 
-        areaInformation.setStyle("-fx-background-color: #ef0808");
-        areaInformation.setVisible(false);
+        areaDetectionLabel.setStyle("-fx-background-color: #ef0808");
+        areaDetectionLabel.setVisible(false);
     }
 
     @Override
@@ -264,4 +253,36 @@ public class App extends Application {
         }
     }
 
+    public void addMapView(GraphicsOverlay myGraphics) {
+        mapView.getGraphicsOverlays().add(myGraphics);
+    }
+
+    public void setAreaLabelVisibility(boolean setVisible) {
+        areaDetectionLabel.setVisible(setVisible);
+        ;
+    }
+
+    public LinkedList<String> getVehicleToShowList() {
+        return vehicleToShowList;
+    }
+
+    public boolean getDoAreaCheck() {
+        return doAreaCheck;
+    }
+
+    public double getAreaCheckPointX() {
+        return areaCheckPointX;
+    }
+
+    public double getAreaCheckPointY() {
+        return areaCheckPointY;
+    }
+
+    public int getSleepTime() {
+        return sleepTime;
+    }
+
+    public double getArea() {
+        return area;
+    }
 }
